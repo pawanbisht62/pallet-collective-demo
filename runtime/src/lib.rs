@@ -39,7 +39,6 @@ use frame_support::traits::{EitherOfDiverse, EqualPrivilegeOnly};
 pub use frame_system::Call as SystemCall;
 use frame_system::{EnsureNone, EnsureRoot};
 pub use pallet_balances::Call as BalancesCall;
-use pallet_democracy::Preimages;
 pub use pallet_timestamp::Call as TimestampCall;
 use pallet_transaction_payment::CurrencyAdapter;
 #[cfg(any(feature = "std", test))]
@@ -274,12 +273,19 @@ impl pallet_sudo::Config for Runtime {
 
 type EnsureRootOrHalfCouncil = EitherOfDiverse<
 	EnsureRoot<AccountId>,
-	pallet_collective::EnsureProportionMoreThan<AccountId, CouncilCollective, 1, 2>,
+	pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 1, 2>,
 >;
+
+type EnsureRootOrEnsureMember = EitherOfDiverse<
+	EnsureRoot<AccountId>,
+	pallet_collective::EnsureMember<AccountId, CouncilCollective>,
+>;
+
 /// Configure the pallet-template in pallets/template.
 impl pallet_template::Config for Runtime {
 	type Event = Event;
 	type ForceOrigin = EnsureRootOrHalfCouncil;
+	type EnsureMemberOrigin = EnsureRootOrEnsureMember;
 }
 
 type CouncilCollective = pallet_collective::Instance1;

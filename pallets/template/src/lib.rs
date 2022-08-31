@@ -30,6 +30,9 @@ pub mod pallet {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// The origin which may forcibly set or remove a name. Root can always do this.
 		type ForceOrigin: EnsureOrigin<Self::Origin>;
+
+		/// The origin which may forcibly set or remove a name. Root can always do this.
+		type EnsureMemberOrigin: EnsureOrigin<Self::Origin>;
 	}
 
 	// The pallet's runtime storage items.
@@ -72,6 +75,23 @@ pub mod pallet {
 			// This function will return an error if the extrinsic is not signed.
 			// https://docs.substrate.io/main-docs/build/origins/
 			T::ForceOrigin::ensure_origin(origin)?;
+
+			// Update storage.
+			<Something<T>>::put(something);
+
+			// Emit an event.
+			Self::deposit_event(Event::SomethingStored(something));
+			// Return a successful DispatchResultWithPostInfo
+			Ok(())
+		}
+
+		///
+		#[pallet::weight(10_000 + T::DbWeight::get().writes(1))]
+		pub fn do_something_with_ensure_member(origin: OriginFor<T>, something: u32) -> DispatchResult {
+			// Check that the extrinsic was signed and get the signer.
+			// This function will return an error if the extrinsic is not signed.
+			// https://docs.substrate.io/main-docs/build/origins/
+			T::EnsureMemberOrigin::ensure_origin(origin)?;
 
 			// Update storage.
 			<Something<T>>::put(something);
